@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/forms.css">
+</head>
+<body>
+    <header>
+        <h1>Departments Management</h1>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="employees.html">Employees</a></li>
+                <li><a href="departments.html">Departments</a></li>
+                <li><a href="attendance.html">Attendance</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="department-form">
+            <h2>Add/Edit Department</h2>
+            <form id="add-department-form">
+                <label for="department-name">Department Name:</label>
+                <input type="text" id="department-name" required>
+                <button type="submit">Save Department</button>
+            </form>
+        </section>
+        <section id="department-list">
+            <h2>Department List</h2>
+            <ul id="departments"></ul>
+        </section>
+    </main>
+    <script type="module" src="../js/main.js"></script>
+</body>
+</html>

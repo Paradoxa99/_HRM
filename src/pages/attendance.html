@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/forms.css">
+</head>
+<body>
+    <header>
+        <h1>Attendance Management</h1>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="employees.html">Employees</a></li>
+                <li><a href="departments.html">Departments</a></li>
+                <li><a href="attendance.html">Attendance</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="attendance-section">
+            <h2>Check In/Out</h2>
+            <form id="attendance-form">
+                <label for="employee-id">Employee ID:</label>
+                <input type="text" id="employee-id" required>
+                <button type="button" id="check-in-btn">Check In</button>
+                <button type="button" id="check-out-btn">Check Out</button>
+            </form>
+            <div id="attendance-report">
+                <h3>Attendance Report</h3>
+                <ul id="report-list"></ul>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="../js/main.js"></script>
+</body>
+</html>

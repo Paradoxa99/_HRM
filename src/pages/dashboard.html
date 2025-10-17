@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRM Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h2>HRM System</h2>
+        <ul>
+            <li class="active"><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="employees.html">Employees</a></li>
+            <li><a href="departments.html">Departments</a></li>
+            <li><a href="attendance.html">Attendance</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <header>
+            <h1>Dashboard</h1>
+            <div class="user-info">Admin</div>
+        </header>
+        <div class="stats-grid">
+            <div class="stat-card" id="totalEmployees">
+                <h3>Total Employees</h3>
+                <p class="stat-number">0</p>
+            </div>
+            <div class="stat-card" id="totalDepartments">
+                <h3>Departments</h3>
+                <p class="stat-number">0</p>
+            </div>
+            <div class="stat-card" id="presentToday">
+                <h3>Present Today</h3>
+                <p class="stat-number">0</p>
+            </div>
+        </div>
+    </main>
+    <script type="module" src="../js/main.js"></script>
+</body>
+</html>

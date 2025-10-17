@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h2>HRM System</h2>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li class="active"><a href="employees.html">Employees</a></li>
+            <li><a href="departments.html">Departments</a></li>
+            <li><a href="attendance.html">Attendance</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <header>
+            <h1>Employee Management</h1>
+            <button id="addEmployeeBtn" class="btn-primary">
+                <i class="fas fa-plus"></i> Add Employee
+            </button>
+        </header>
+
+        <div class="controls-container">
+            <div class="search-box">
+                <input type="text" id="searchEmployee" placeholder="Search employees...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="filter-box">
+                <select id="departmentFilter">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="employeeForm" class="form-container hidden">
+            <h2 class="form-title">Add New Employee</h2>
+            <form id="addEditEmployeeForm" class="grid-form">
+                <input type="hidden" id="employeeId">
+                <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" required>
+                </div>
+                <div class="form-group full-width">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group full-width">
+                    <label for="department">Department</label>
+                    <select id="department" required></select>
+                </div>
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button type="button" class="btn-secondary" id="cancelBtn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <table id="employeesTable" class="responsive-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="table-pagination">
+                <button id="prevPage" class="btn-secondary">Previous</button>
+                <span id="pageInfo">Page 1 of 1</span>
+                <button id="nextPage" class="btn-secondary">Next</button>
+            </div>
+        </div>
+    </main>
+    <script type="module">
+        import { initEmployeeModule } from '../js/controllers/employeeController.js';
+        // initEmployeeModule will find a suitable container on the page
+        initEmployeeModule('.content');
+    </script>
+</body>
+</html>
