@@ -90,6 +90,63 @@ th {
     border-color: red;
 }
 
+/* Auth wrapper and header */
+.auth-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    background-image: url('background/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.auth-header {
+    margin-bottom: 30px;
+}
+
+.app-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+.app-title {
+    font-size: 2.5rem;
+    color: #fff;
+    margin: 0;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Auth form container */
+.auth-form-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    max-width: 400px;
+    width: 100%;
+}
+
+/* Link buttons for auth forms */
+.link-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+}
+
+.link-button:hover {
+    color: #0056b3;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     #navbar {
@@ -100,5 +157,8 @@ th {
     }
     table {
         font-size: 14px;
+    }
+    .auth-tabs {
+        flex-direction: column;
     }
 }

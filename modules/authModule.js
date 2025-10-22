@@ -14,31 +14,40 @@ export const AuthModule = {
     render() {
         const container = document.getElementById('main-content');
         container.innerHTML = `
-            <h2>Đăng nhập</h2>
-            <form id="login-form">
-                <input type="text" id="username" placeholder="Tên đăng nhập" required>
-                <input type="password" id="password" placeholder="Mật khẩu" required>
-                <button type="submit">Đăng nhập</button>
-            </form>
-            <p>Chưa có tài khoản? <button id="show-register">Đăng ký</button></p>
-            <div id="register-form" style="display: none;">
-                <h3>Đăng ký</h3>
-                <form id="register-form-el">
-                    <input type="text" id="reg-username" placeholder="Tên đăng nhập" required>
-                    <input type="password" id="reg-password" placeholder="Mật khẩu" required>
-                    <input type="password" id="reg-confirm" placeholder="Xác nhận mật khẩu" required>
-                    <button type="submit">Đăng ký</button>
-                </form>
+            <div class="auth-wrapper">
+                <div class="auth-header">
+                    <div class="app-icon">🏢</div>
+                    <h1 class="app-title">HRM</h1>
+                </div>
+                <div id="login-container" class="auth-form-container">
+                    <h2>Đăng nhập</h2>
+                    <form id="login-form">
+                        <input type="text" id="username" placeholder="Tên đăng nhập" required>
+                        <input type="password" id="password" placeholder="Mật khẩu" required>
+                        <button type="submit">Đăng nhập</button>
+                    </form>
+                    <p>Chưa có tài khoản? <button id="show-register" class="link-button">Đăng ký</button></p>
+                </div>
+                <div id="register-container" class="auth-form-container" style="display: none;">
+                    <h2>Đăng ký</h2>
+                    <form id="register-form-el">
+                        <input type="text" id="reg-username" placeholder="Tên đăng nhập" required>
+                        <input type="password" id="reg-password" placeholder="Mật khẩu" required>
+                        <input type="password" id="reg-confirm" placeholder="Xác nhận mật khẩu" required>
+                        <button type="submit">Đăng ký</button>
+                    </form>
+                    <p>Đã có tài khoản? <button id="back-to-login" class="link-button">Quay lại Đăng nhập</button></p>
+                </div>
             </div>
         `;
         // Gắn event listener cho form đăng nhập
         document.getElementById('login-form').addEventListener('submit', this.handleLogin.bind(this));
-        // Hiển thị form đăng ký khi click nút
-        document.getElementById('show-register').addEventListener('click', () => {
-            document.getElementById('register-form').style.display = 'block';
-        });
         // Gắn event listener cho form đăng ký
         document.getElementById('register-form-el').addEventListener('submit', this.handleRegister.bind(this));
+        // Gắn event listener cho nút hiển thị đăng ký
+        document.getElementById('show-register').addEventListener('click', () => this.showForm('register'));
+        // Gắn event listener cho nút quay lại
+        document.getElementById('back-to-login').addEventListener('click', () => this.showForm('login'));
     },
 
     // Hàm xử lý đăng nhập
@@ -89,8 +98,22 @@ export const AuthModule = {
         users.push({ username, hashedPassword: this.hashPassword(password), role: 'user' });
         localStorage.setItem('users', JSON.stringify(users));
         alert('Đăng ký thành công. Vui lòng đăng nhập.');
-        // Ẩn form đăng ký
-        document.getElementById('register-form').style.display = 'none';
+        // Tự động chuyển về form đăng nhập
+        this.showForm('login');
+    },
+
+    // Hàm hiển thị form
+    showForm(form) {
+        const loginContainer = document.getElementById('login-container');
+        const registerContainer = document.getElementById('register-container');
+
+        if (form === 'login') {
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+        } else if (form === 'register') {
+            registerContainer.style.display = 'block';
+            loginContainer.style.display = 'none';
+        }
     },
 
     // Hàm đăng xuất
