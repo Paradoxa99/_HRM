@@ -2,20 +2,9 @@
 import { EmployeeDbModule } from './employeeDbModule.js';
 
 export const SalaryModule = {
-    // Hàm tính lương thực nhận
+    // Hàm tính lương thực nhận (chỉ lương cơ bản, không có thưởng/khấu trừ từ đánh giá)
     calculateNetSalary(employee) {
-        // Tính thưởng/khấu trừ từ đánh giá hiệu suất
-        const reviews = JSON.parse(localStorage.getItem('reviews') || '[]').filter(r => r.employeeId === employee.id);
-        let performanceBonus = 0;
-        let performanceDeduction = 0;
-        reviews.forEach(review => {
-            if (review.bonusDeductionType === 'bonus' && review.amount) {
-                performanceBonus += review.amount;
-            } else if (review.bonusDeductionType === 'deduction' && review.amount) {
-                performanceDeduction += review.amount;
-            }
-        });
-        return employee.salary + performanceBonus - performanceDeduction;
+        return employee.salary;
     },
 
     // Hàm tạo báo cáo bảng lương
@@ -39,7 +28,7 @@ export const SalaryModule = {
         // Tạo bảng hiển thị báo cáo lương
         const table = document.createElement('table');
         const header = document.createElement('tr');
-        ['Tên', 'Lương Cơ Bản', 'Thưởng/Khấu Trừ Từ Đánh Giá', 'Lương Thực Nhận'].forEach(h => {
+        ['Tên', 'Lương Cơ Bản'].forEach(h => {
             const th = document.createElement('th');
             th.textContent = h;
             header.appendChild(th);
@@ -47,19 +36,8 @@ export const SalaryModule = {
         table.appendChild(header);
         // Thêm dữ liệu từng nhân viên
         report.forEach(emp => {
-            const reviews = JSON.parse(localStorage.getItem('reviews') || '[]').filter(r => r.employeeId === emp.id);
-            let performanceBonus = 0;
-            let performanceDeduction = 0;
-            reviews.forEach(review => {
-                if (review.bonusDeductionType === 'bonus' && review.amount) {
-                    performanceBonus += review.amount;
-                } else if (review.bonusDeductionType === 'deduction' && review.amount) {
-                    performanceDeduction += review.amount;
-                }
-            });
-            const performanceText = performanceBonus > 0 && performanceDeduction > 0 ? `+${performanceBonus} / -${performanceDeduction}` : performanceBonus > 0 ? `+${performanceBonus}` : performanceDeduction > 0 ? `-${performanceDeduction}` : '0';
             const row = document.createElement('tr');
-            [emp.name, emp.salary, performanceText, emp.netSalary].forEach(val => {
+            [emp.name, emp.salary].forEach(val => {
                 const td = document.createElement('td');
                 td.textContent = val;
                 row.appendChild(td);

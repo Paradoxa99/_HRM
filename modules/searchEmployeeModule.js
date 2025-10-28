@@ -1,75 +1,50 @@
 // Import các module cần thiết
 import { EmployeeDbModule } from './employeeDbModule.js';
 import { DepartmentModule } from './departmentModule.js';
+import { PositionModule } from './positionModule.js';
 
 export const SearchEmployeeModule = {
     // Hàm render giao diện tìm kiếm nhân viên
     render() {
         const container = document.getElementById('main-content');
-        container.innerHTML = '<h2>Tìm Kiếm Nhân Viên</h2>';
+        container.innerHTML = '<h2>Tìm Kiếm</h2>';
 
-        // Tạo các nút lựa chọn hiển thị
-        const displayOptions = document.createElement('div');
-        displayOptions.innerHTML = `
-            <button id="show-all">Hiển Thị Toàn Bộ Nhân Viên</button>
-            <select id="dept-select" style="display: none;">
-                <option value="">Chọn Phòng Ban</option>
-            </select>
-            <button id="show-by-dept">Hiển Thị Theo Phòng Ban</button>
+        // Tạo form tìm kiếm
+        const form = document.createElement('form');
+        form.id = 'search-form';
+        form.innerHTML = `
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="name-regex" placeholder="Tên nhân viên (regex)" style="flex: 1; min-width: 200px;">
+                <select id="department" style="flex: 1; min-width: 150px;">
+                    <option value="">Tất Cả Phòng Ban</option>
+                </select>
+                <select id="position" style="flex: 1; min-width: 150px;">
+                    <option value="">Tất Cả Vị Trí</option>
+                </select>
+                <input type="number" id="min-salary" placeholder="Lương tối thiểu" style="flex: 1; min-width: 120px;">
+                <input type="number" id="max-salary" placeholder="Lương tối đa" style="flex: 1; min-width: 120px;">
+                <button type="submit" style="padding: 8px 16px;">Tìm Kiếm</button>
+            </div>
         `;
-        // Thêm options cho select
-        const deptSelect = displayOptions.querySelector('#dept-select');
+
+        // Thêm options cho department select
+        const deptSelect = form.querySelector('#department');
         DepartmentModule.getAllDepartments().forEach(d => {
             const opt = document.createElement('option');
             opt.value = d.id;
             opt.textContent = d.name;
             deptSelect.appendChild(opt);
         });
-        container.appendChild(displayOptions);
 
-        const form = document.createElement('form');
-        form.id = 'search-form';
-
-        // Tạo input cho tên với regex
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.id = 'name-regex';
-        nameInput.placeholder = 'Tên (regex)';
-
-        // Tạo select cho phòng ban
-        const deptSelectForm = document.createElement('select');
-        deptSelectForm.id = 'department';
-        const defaultOpt = document.createElement('option');
-        defaultOpt.value = '';
-        defaultOpt.textContent = 'Tất Cả Phòng Ban';
-        deptSelectForm.appendChild(defaultOpt);
-        // Thêm các option phòng ban
-        DepartmentModule.getAllDepartments().forEach(d => {
+        // Thêm options cho position select
+        const posSelect = form.querySelector('#position');
+        PositionModule.getAllPositions().forEach(p => {
             const opt = document.createElement('option');
-            opt.value = d.id;
-            opt.textContent = d.name;
-            deptSelectForm.appendChild(opt);
+            opt.value = p.id;
+            opt.textContent = p.title;
+            posSelect.appendChild(opt);
         });
 
-        // Tạo input cho lương tối thiểu
-        const minSalaryInput = document.createElement('input');
-        minSalaryInput.type = 'number';
-        minSalaryInput.id = 'min-salary';
-        minSalaryInput.placeholder = 'Lương Tối Thiểu';
-
-        // Tạo input cho lương tối đa
-        const maxSalaryInput = document.createElement('input');
-        maxSalaryInput.type = 'number';
-        maxSalaryInput.id = 'max-salary';
-        maxSalaryInput.placeholder = 'Lương Tối Đa';
-
-        // Tạo nút tìm kiếm
-        const searchBtn = document.createElement('button');
-        searchBtn.textContent = 'Tìm Kiếm';
-        searchBtn.type = 'submit';
-
-        // Thêm các element vào form
-        form.append(nameInput, deptSelectForm, minSalaryInput, maxSalaryInput, searchBtn);
         container.appendChild(form);
 
         // Tạo div cho kết quả
@@ -80,15 +55,8 @@ export const SearchEmployeeModule = {
         // Gắn event listener cho form
         form.addEventListener('submit', this.handleSearch.bind(this));
 
-        // Gắn event listener cho nút hiển thị
-        document.getElementById('show-all').addEventListener('click', () => this.showAllEmployees());
-        document.getElementById('show-by-dept').addEventListener('click', () => {
-            const deptSelect = document.getElementById('dept-select');
-            deptSelect.style.display = deptSelect.style.display === 'none' ? 'inline' : 'none';
-            if (deptSelect.style.display === 'inline') {
-                deptSelect.addEventListener('change', () => this.showEmployeesBySelectedDepartment());
-            }
-        });
+        // Hiển thị tất cả nhân viên mặc định
+        this.showAllEmployees();
     },
 
     // Hàm xử lý tìm kiếm
@@ -97,6 +65,7 @@ export const SearchEmployeeModule = {
         // Lấy giá trị từ form
         const nameRegex = document.getElementById('name-regex').value;
         const dept = document.getElementById('department').value;
+        const position = document.getElementById('position').value;
         const min = parseFloat(document.getElementById('min-salary').value) || 0;
         const max = parseFloat(document.getElementById('max-salary').value) || Infinity;
 
@@ -119,6 +88,7 @@ export const SearchEmployeeModule = {
         const results = EmployeeDbModule.filterEmployees(emp =>
             (!regex || regex.test(emp.name)) &&
             (!dept || emp.departmentId === dept) &&
+            (!position || emp.positionId === position) &&
             emp.salary >= min && emp.salary <= max
         );
 
@@ -130,94 +100,52 @@ export const SearchEmployeeModule = {
     renderResults(results) {
         const resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '';
+
         if (results.length === 0) {
-            resultsDiv.textContent = 'Không có kết quả';
+            resultsDiv.innerHTML = '<p style="text-align: center; color: #666;">Không có kết quả tìm thấy</p>';
             return;
         }
 
         // Tạo bảng kết quả
         const table = document.createElement('table');
-        const header = document.createElement('tr');
-        ['ID', 'Tên', 'Phòng Ban', 'Lương'].forEach(h => {
-            const th = document.createElement('th');
-            th.textContent = h;
-            // Thêm event sort cho cột Salary
-            if (h === 'Lương') {
-                th.addEventListener('click', () => this.sortAndRender(results, (a, b) => a.salary - b.salary));
-            }
-            header.appendChild(th);
-        });
-        table.appendChild(header);
+        table.className = 'search-results-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên</th>
+                    <th>Phòng Ban</th>
+                    <th>Vị Trí</th>
+                    <th>Lương</th>
+                    <th>Ngày Thuê</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${results.map(emp => {
+                    const dept = DepartmentModule.getAllDepartments().find(d => d.id === emp.departmentId);
+                    const pos = PositionModule.getAllPositions().find(p => p.id === emp.positionId);
+                    return `
+                        <tr>
+                            <td>${emp.id}</td>
+                            <td>${emp.name}</td>
+                            <td>${dept ? dept.name : 'N/A'}</td>
+                            <td>${pos ? pos.title : 'N/A'}</td>
+                            <td>${emp.salary.toLocaleString()}</td>
+                            <td>${emp.hireDate}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        `;
 
-        // Thêm các hàng dữ liệu
-        results.forEach(emp => {
-            const row = document.createElement('tr');
-            [emp.id, emp.name, emp.departmentId, emp.salary].forEach(val => {
-                const td = document.createElement('td');
-                td.textContent = val;
-                row.appendChild(td);
-            });
-            table.appendChild(row);
-        });
         resultsDiv.appendChild(table);
-    },
-
-    // Hàm sort và render lại kết quả
-    sortAndRender(results, comparator) {
-        const sorted = EmployeeDbModule.sortEmployees(comparator);
-        this.renderResults(sorted);
     },
 
     // Hàm hiển thị toàn bộ nhân viên
     showAllEmployees() {
         const allEmployees = EmployeeDbModule.getAllEmployees();
-        // Sắp xếp theo phòng ban (theo ID), rồi theo tên
-        const sortedEmployees = allEmployees.sort((a, b) => {
-            if (a.departmentId !== b.departmentId) {
-                return a.departmentId.localeCompare(b.departmentId);
-            }
-            return a.name.localeCompare(b.name);
-        });
-        this.renderResults(sortedEmployees);
-    },
-
-    // Hàm hiển thị nhân viên theo phòng ban
-    showEmployeesByDepartment() {
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
-
-        const departments = DepartmentModule.getAllDepartments();
-        departments.forEach(dept => {
-            const deptEmployees = EmployeeDbModule.filterEmployees(emp => emp.departmentId === dept.id);
-            if (deptEmployees.length > 0) {
-                const deptHeader = document.createElement('h3');
-                deptHeader.textContent = `Phòng Ban: ${dept.name}`;
-                resultsDiv.appendChild(deptHeader);
-
-                this.renderResults(deptEmployees);
-            }
-        });
-    },
-
-    // Hàm hiển thị nhân viên theo phòng ban được chọn
-    showEmployeesBySelectedDepartment() {
-        const deptSelect = document.getElementById('dept-select');
-        const selectedDeptId = deptSelect.value;
-        if (!selectedDeptId) return;
-
-        const dept = DepartmentModule.getAllDepartments().find(d => d.id === selectedDeptId);
-        if (!dept) return;
-
-        const deptEmployees = EmployeeDbModule.filterEmployees(emp => emp.departmentId === selectedDeptId);
         // Sắp xếp theo tên
-        const sortedEmployees = deptEmployees.sort((a, b) => a.name.localeCompare(b.name));
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
-
-        const deptHeader = document.createElement('h3');
-        deptHeader.textContent = `Phòng Ban: ${dept.name}`;
-        resultsDiv.appendChild(deptHeader);
-
+        const sortedEmployees = allEmployees.sort((a, b) => a.name.localeCompare(b.name));
         this.renderResults(sortedEmployees);
     }
 };

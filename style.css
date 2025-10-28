@@ -147,6 +147,194 @@ th {
     color: #0056b3;
 }
 
+/* Employee management styles */
+.employee-management {
+    padding: 20px;
+}
+
+.employee-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.employee-header h3 {
+    margin: 0;
+}
+
+.add-employee-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.add-employee-btn:hover {
+    background-color: #45a049;
+}
+
+/* Employee table */
+.employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.employee-table th, .employee-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.employee-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.employee-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.employee-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Action buttons */
+.action-btn {
+    padding: 6px 12px;
+    margin: 0 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #1976D2;
+}
+
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* Search results table */
+.search-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.search-results-table th, .search-results-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.search-results-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.search-results-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.search-results-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Attendance table */
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.attendance-table th, .attendance-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.attendance-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.attendance-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.attendance-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Department table */
+.department-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.department-table th, .department-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.department-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.department-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.department-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Position table */
+.position-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.position-table th, .position-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.position-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.position-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.position-table tr:hover {
+    background-color: #f5f5f5;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     #navbar {
@@ -160,5 +348,12 @@ th {
     }
     .auth-tabs {
         flex-direction: column;
+    }
+    .employee-tabs {
+        flex-direction: column;
+    }
+    .search-results-table th, .search-results-table td {
+        padding: 8px;
+        font-size: 12px;
     }
 }

@@ -1,3 +1,7 @@
+// Import các module cần thiết
+import { EmployeeDbModule } from './employeeDbModule.js';
+import { DepartmentModule } from './departmentModule.js';
+
 export const AttendanceModule = {
     // Hàm lấy danh sách chấm công
     getAttendance() {
@@ -32,6 +36,20 @@ export const AttendanceModule = {
         await this.saveAttendance(logs);
     },
 
+    // Hàm check-in cho cả phòng ban
+    async checkInDepartment(departmentId) {
+        const employees = EmployeeDbModule.getAllEmployees().filter(emp => emp.departmentId === departmentId);
+        const promises = employees.map(emp => this.checkIn(emp.id).catch(() => {})); // Ignore errors for individual employees
+        await Promise.all(promises);
+    },
+
+    // Hàm check-out cho cả phòng ban
+    async checkOutDepartment(departmentId) {
+        const employees = EmployeeDbModule.getAllEmployees().filter(emp => emp.departmentId === departmentId);
+        const promises = employees.map(emp => this.checkOut(emp.id).catch(() => {})); // Ignore errors for individual employees
+        await Promise.all(promises);
+    },
+
     // Hàm tạo báo cáo chấm công
     getAttendanceReport(employeeId, from, to) {
         if (new Date(from) > new Date(to)) throw new Error('Invalid date range');
@@ -55,108 +73,212 @@ export const AttendanceModule = {
     // Hàm render giao diện chấm công
     render() {
         const container = document.getElementById('main-content');
-        container.innerHTML = '<h2>Chấm Công</h2>';
+        container.innerHTML = `
+            <h2>Chấm Công</h2>
+            <div id="attendance-content"></div>
+        `;
 
-        // Form check-in
-        const checkInForm = document.createElement('form');
-        const empIdInput = document.createElement('input');
-        empIdInput.type = 'text';
-        empIdInput.placeholder = 'ID Nhân Viên';
-        const checkInBtn = document.createElement('button');
-        checkInBtn.textContent = 'Check In';
-        checkInBtn.type = 'submit';
-        checkInForm.append(empIdInput, checkInBtn);
-        // Gắn event listener
-        checkInForm.addEventListener('submit', (e) => this.handleCheckIn(e, empIdInput.value));
-        container.appendChild(checkInForm);
-
-        // Form check-out
-        const checkOutForm = document.createElement('form');
-        const empIdInput2 = document.createElement('input');
-        empIdInput2.type = 'text';
-        empIdInput2.placeholder = 'ID Nhân Viên';
-        const checkOutBtn = document.createElement('button');
-        checkOutBtn.textContent = 'Check Out';
-        checkOutBtn.type = 'submit';
-        checkOutForm.append(empIdInput2, checkOutBtn);
-        // Gắn event listener
-        checkOutForm.addEventListener('submit', (e) => this.handleCheckOut(e, empIdInput2.value));
-        container.appendChild(checkOutForm);
-
-        // Form tạo báo cáo
-        const reportForm = document.createElement('form');
-        const empIdInput3 = document.createElement('input');
-        empIdInput3.type = 'text';
-        empIdInput3.placeholder = 'ID Nhân Viên';
-        const fromInput = document.createElement('input');
-        fromInput.type = 'date';
-        const toInput = document.createElement('input');
-        toInput.type = 'date';
-        const reportBtn = document.createElement('button');
-        reportBtn.textContent = 'Tạo Báo Cáo';
-        reportBtn.type = 'submit';
-        reportForm.append(empIdInput3, fromInput, toInput, reportBtn);
-        // Gắn event listener
-        reportForm.addEventListener('submit', (e) => this.handleReport(e, empIdInput3.value, fromInput.value, toInput.value));
-        container.appendChild(reportForm);
-
-        // Div chứa báo cáo
-        const reportDiv = document.createElement('div');
-        reportDiv.id = 'report';
-        container.appendChild(reportDiv);
+        this.showAttendanceView();
     },
 
-    // Hàm xử lý check-in
-    async handleCheckIn(e, empId) {
-        e.preventDefault();
+    // Hiển thị view chấm công chính
+    showAttendanceView() {
+        const content = document.getElementById('attendance-content');
+        const allEmployees = EmployeeDbModule.getAllEmployees().sort((a, b) => {
+            if (a.departmentId !== b.departmentId) {
+                return a.departmentId.localeCompare(b.departmentId);
+            }
+            return a.name.localeCompare(b.name);
+        });
+        const departments = DepartmentModule.getAllDepartments();
+        const today = new Date().toISOString().split('T')[0];
+        const attendanceLogs = this.getAttendance().filter(log => log.date === today);
+
+        // Lọc nhân viên theo phòng ban được chọn
+        const selectedDeptId = document.getElementById('department-select')?.value || '';
+        const employees = selectedDeptId ? allEmployees.filter(emp => emp.departmentId === selectedDeptId) : allEmployees;
+
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Chấm Công Ngày ${new Date().toLocaleDateString('vi-VN')}</h3>
+                <div>
+                    <select id="department-select" style="margin-right: 10px; padding: 8px;">
+                        <option value="">Tất Cả Phòng Ban</option>
+                        ${departments.map(dept => `<option value="${dept.id}">${dept.name}</option>`).join('')}
+                    </select>
+                    <button id="checkin-dept-btn" class="action-btn" style="background-color: #4CAF50; color: white; padding: 8px 16px; margin-right: 5px;">Check In Phòng Ban</button>
+                    <button id="checkout-dept-btn" class="action-btn" style="background-color: #FF9800; color: white; padding: 8px 16px;">Check Out Phòng Ban</button>
+                </div>
+            </div>
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên</th>
+                        <th>Phòng Ban</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Báo Cáo</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${employees.map(emp => {
+                        const dept = departments.find(d => d.id === emp.departmentId);
+                        const todayLog = attendanceLogs.find(log => log.employeeId === emp.id);
+                        const checkInTime = todayLog?.checkIn ? new Date(todayLog.checkIn).toLocaleTimeString('vi-VN') : '';
+                        const checkOutTime = todayLog?.checkOut ? new Date(todayLog.checkOut).toLocaleTimeString('vi-VN') : '';
+                        return `
+                            <tr>
+                                <td>${emp.id}</td>
+                                <td>${emp.name}</td>
+                                <td>${dept ? dept.name : 'N/A'}</td>
+                                <td>${checkInTime}</td>
+                                <td>${checkOutTime}</td>
+                                <td><button class="report-btn action-btn" data-id="${emp.id}" style="background-color: #9C27B0; color: white;">Báo Cáo</button></td>
+                                <td>
+                                    <button class="checkin-btn action-btn" data-id="${emp.id}" ${todayLog?.checkIn ? 'disabled' : ''} style="background-color: #4CAF50; color: white; margin-right: 5px;">Check In</button>
+                                    <button class="checkout-btn action-btn" data-id="${emp.id}" ${!todayLog?.checkIn || todayLog?.checkOut ? 'disabled' : ''} style="background-color: #FF9800; color: white;">Check Out</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+
+        // Gắn event listeners
+        content.querySelectorAll('.checkin-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleIndividualCheckIn(e.target.dataset.id));
+        });
+        content.querySelectorAll('.checkout-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleIndividualCheckOut(e.target.dataset.id));
+        });
+        content.querySelectorAll('.report-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.showEmployeeReport(e.target.dataset.id));
+        });
+
+        document.getElementById('checkin-dept-btn').addEventListener('click', () => this.handleDepartmentCheckIn());
+        document.getElementById('checkout-dept-btn').addEventListener('click', () => this.handleDepartmentCheckOut());
+
+        // Event listener cho department select
+        document.getElementById('department-select').addEventListener('change', () => this.showAttendanceView());
+    },
+
+    // Xử lý check-in cá nhân
+    async handleIndividualCheckIn(employeeId) {
         try {
-            await this.checkIn(empId);
-            alert('Đã check in');
-        } catch (err) {
-            alert('Check in thất bại: ' + err.message);
+            await this.checkIn(employeeId);
+            alert('Check in thành công!');
+            this.showAttendanceView(); // Refresh view
+        } catch (error) {
+            alert('Check in thất bại: ' + error.message);
         }
     },
 
-    // Hàm xử lý check-out
-    async handleCheckOut(e, empId) {
-        e.preventDefault();
+    // Xử lý check-out cá nhân
+    async handleIndividualCheckOut(employeeId) {
         try {
-            await this.checkOut(empId);
-            alert('Đã check out');
-        } catch (err) {
-            alert('Check out thất bại: ' + err.message);
+            await this.checkOut(employeeId);
+            alert('Check out thành công!');
+            this.showAttendanceView(); // Refresh view
+        } catch (error) {
+            alert('Check out thất bại: ' + error.message);
         }
     },
 
-    // Hàm xử lý tạo báo cáo
-    handleReport(e, empId, from, to) {
-        e.preventDefault();
+    // Xử lý check-in phòng ban
+    async handleDepartmentCheckIn() {
+        const deptId = document.getElementById('department-select').value;
+        if (!deptId) {
+            alert('Vui lòng chọn phòng ban!');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc muốn check in cho toàn bộ phòng ban này?')) return;
+
         try {
-            const { logs, totalHours } = this.getAttendanceReport(empId, from, to);
-            const reportDiv = document.getElementById('report');
-            reportDiv.innerHTML = `<p>Tổng Giờ: ${totalHours.toFixed(2)}</p>`;
-            // Tạo bảng hiển thị báo cáo
-            const table = document.createElement('table');
-            const header = document.createElement('tr');
-            ['Ngày', 'Check In', 'Check Out'].forEach(h => {
-                const th = document.createElement('th');
-                th.textContent = h;
-                header.appendChild(th);
-            });
-            table.appendChild(header);
-            // Thêm dữ liệu từng bản ghi
-            logs.forEach(log => {
-                const row = document.createElement('tr');
-                [log.date, new Date(log.checkIn).toLocaleString(), new Date(log.checkOut).toLocaleString()].forEach(val => {
-                    const td = document.createElement('td');
-                    td.textContent = val;
-                    row.appendChild(td);
-                });
-                table.appendChild(row);
-            });
-            reportDiv.appendChild(table);
-        } catch (err) {
-            alert('Tạo báo cáo thất bại: ' + err.message);
+            await this.checkInDepartment(deptId);
+            alert('Check in phòng ban thành công!');
+            this.showAttendanceView(); // Refresh view
+        } catch (error) {
+            alert('Check in phòng ban thất bại: ' + error.message);
+        }
+    },
+
+    // Xử lý check-out phòng ban
+    async handleDepartmentCheckOut() {
+        const deptId = document.getElementById('department-select').value;
+        if (!deptId) {
+            alert('Vui lòng chọn phòng ban!');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc muốn check out cho toàn bộ phòng ban này?')) return;
+
+        try {
+            await this.checkOutDepartment(deptId);
+            alert('Check out phòng ban thành công!');
+            this.showAttendanceView(); // Refresh view
+        } catch (error) {
+            alert('Check out phòng ban thất bại: ' + error.message);
+        }
+    },
+
+    // Hiển thị báo cáo của nhân viên
+    showEmployeeReport(employeeId) {
+        const employee = EmployeeDbModule.getEmployeeById(employeeId);
+        if (!employee) {
+            alert('Không tìm thấy nhân viên!');
+            return;
+        }
+
+        const content = document.getElementById('attendance-content');
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+
+        try {
+            const { logs, totalHours } = this.getAttendanceReport(employeeId, firstDayOfMonth, lastDayOfMonth);
+
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Báo Cáo Chấm Công - ${employee.name}</h3>
+                    <button id="back-to-attendance-btn" class="action-btn" style="background-color: #666; color: white; padding: 10px 20px;">Quay Lại</button>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                    <p><strong>Tháng:</strong> ${today.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}</p>
+                    <p><strong>Tổng số giờ làm việc:</strong> ${totalHours.toFixed(2)} giờ</p>
+                    <p><strong>Số ngày có mặt:</strong> ${logs.length} ngày</p>
+                </div>
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Giờ Làm Việc</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${logs.map(log => {
+                            const hours = ((log.checkOut - log.checkIn) / 3600000).toFixed(2);
+                            return `
+                                <tr>
+                                    <td>${new Date(log.date).toLocaleDateString('vi-VN')}</td>
+                                    <td>${new Date(log.checkIn).toLocaleTimeString('vi-VN')}</td>
+                                    <td>${new Date(log.checkOut).toLocaleTimeString('vi-VN')}</td>
+                                    <td>${hours} giờ</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('back-to-attendance-btn').addEventListener('click', () => this.showAttendanceView());
+        } catch (error) {
+            alert('Lỗi khi tạo báo cáo: ' + error.message);
         }
     }
 };

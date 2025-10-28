@@ -80,10 +80,8 @@ export const EditEmployeeModule = {
             if (p.id === employee.positionId) opt.selected = true;
             posSelect.appendChild(opt);
         });
-        // Tạo input cho lương
-        const salaryInput = document.createElement('input');
-        salaryInput.type = 'number';
-        salaryInput.value = employee.salary;
+        // Tạo select cho phụ cấp
+        const allowanceSelect = this.createAllowanceSelect(employee.allowance);
         // Tạo input cho ngày thuê
         const hireDateInput = document.createElement('input');
         hireDateInput.type = 'date';
@@ -92,31 +90,74 @@ export const EditEmployeeModule = {
         const submitBtn = document.createElement('button');
         submitBtn.textContent = 'Cập Nhật';
         submitBtn.type = 'submit';
-        form.append(nameInput, deptSelect, posSelect, salaryInput, hireDateInput, submitBtn);
+        form.append(nameInput, deptSelect, posSelect, allowanceSelect, hireDateInput, submitBtn);
         // Gắn event listener cho form
-        form.addEventListener('submit', (e) => this.handleUpdate(e, employee.id));
+        form.addEventListener('submit', (e) => this.handleUpdate(e, employee.id, employee));
         form.style.display = 'block';
     },
 
+    // Hàm tạo select cho phụ cấp
+    createAllowanceSelect(currentAllowance) {
+        const select = document.createElement('select');
+        select.id = 'allowance';
+        select.required = true;
+        // Tạo option mặc định
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = 'Chọn Phụ Cấp';
+        select.appendChild(defaultOpt);
+        // Thêm các option phụ cấp
+        const allowances = [0, 5, 10, 15, 20];
+        allowances.forEach(percent => {
+            const option = document.createElement('option');
+            option.value = percent;
+            option.textContent = `${percent}%`;
+            if (percent === currentAllowance) option.selected = true;
+            select.appendChild(option);
+        });
+        return select;
+    },
+
     // Hàm xử lý cập nhật nhân viên
-    async handleUpdate(e, id) {
+    async handleUpdate(e, id, employee) {
         e.preventDefault();
         if (!confirm('Bạn chắc chắn muốn cập nhật?')) return;
         // Thu thập dữ liệu từ form
-        const updates = {
-            name: document.querySelector('#edit-form input[type="text"]').value.trim(),
-            departmentId: document.querySelector('#edit-form select:nth-child(2)').value,
-            positionId: document.querySelector('#edit-form select:nth-child(3)').value,
-            salary: parseFloat(document.querySelector('#edit-form input[type="number"]').value),
-            hireDate: document.querySelector('#edit-form input[type="date"]').value,
-            bonus: employee.bonus,
-            deduction: employee.deduction
-        };
+        const name = document.querySelector('#edit-form input[type="text"]').value.trim();
+        const departmentId = document.querySelector('#edit-form select:nth-child(2)').value;
+        const positionId = document.querySelector('#edit-form select:nth-child(3)').value;
+        const allowance = parseFloat(document.querySelector('#edit-form select:nth-child(4)').value) || 0;
+        const hireDate = document.querySelector('#edit-form input[type="date"]').value;
+
+        // Lấy lương cơ bản từ vị trí và tính phụ cấp theo %
+        const position = PositionModule.getAllPositions().find(p => p.id === positionId);
+        const baseSalary = position ? position.salaryBase : 0;
+        const allowanceAmount = baseSalary * (allowance / 100);
+        const totalSalary = baseSalary + allowanceAmount;
+
         // Validate dữ liệu
-        if (!updates.name || updates.salary <= 0) {
+        if (!name || !departmentId || !positionId || allowance < 0 || !Date.parse(hireDate) ||
+            !DepartmentModule.getAllDepartments().some(d => d.id === departmentId) ||
+            !PositionModule.getAllPositions().some(p => p.id === positionId)) {
             alert('Dữ liệu không hợp lệ');
             return;
         }
+
+        // Validate phụ cấp không vượt quá 20%
+        if (allowance > 20) {
+            alert('Phụ cấp không được vượt quá 20%');
+            return;
+        }
+
+        const updates = {
+            name,
+            departmentId,
+            positionId,
+            salary: totalSalary,
+            hireDate,
+            allowance
+        };
+
         try {
             // Cập nhật nhân viên
             await EmployeeDbModule.updateEmployee(id, updates);

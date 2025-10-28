@@ -1,10 +1,7 @@
 // Import tất cả module
 import { AuthModule } from './modules/authModule.js';
 import { EmployeeDbModule } from './modules/employeeDbModule.js';
-import { AddEmployeeModule } from './modules/addEmployeeModule.js';
-import { EditEmployeeModule } from './modules/editEmployeeModule.js';
-import { DeleteEmployeeModule } from './modules/deleteEmployeeModule.js';
-import { SearchEmployeeModule } from './modules/searchEmployeeModule.js';
+import { EmployeeManagementModule } from './modules/employeeManagementModule.js';
 import { DepartmentModule } from './modules/departmentModule.js';
 import { PositionModule } from './modules/positionModule.js';
 import { SalaryModule } from './modules/salaryModule.js';
@@ -12,12 +9,13 @@ import { AttendanceModule } from './modules/attendanceModule.js';
 import { LeaveModule } from './modules/leaveModule.js';
 import { PerformanceModule } from './modules/performanceModule.js';
 
+// Import SearchEmployeeModule
+import { SearchEmployeeModule } from './modules/searchEmployeeModule.js';
+
 // Object chứa tất cả module để routing - ánh xạ tên module với đối tượng module tương ứng
 const modules = {
     auth: AuthModule,
-    addEmployee: AddEmployeeModule,
-    editEmployee: EditEmployeeModule,
-    deleteEmployee: DeleteEmployeeModule,
+    employee: EmployeeManagementModule,
     searchEmployee: SearchEmployeeModule,
     department: DepartmentModule,
     position: PositionModule,
@@ -113,10 +111,8 @@ function generateDepartmentCode(deptName) {
 function renderNavbar() {
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
-        <button data-module="addEmployee">Thêm Nhân Viên</button>
-        <button data-module="editEmployee">Chỉnh Sửa Nhân Viên</button>
-        <button data-module="deleteEmployee">Xóa Nhân Viên</button>
-        <button data-module="searchEmployee">Tìm Kiếm Nhân Viên</button>
+        <button data-module="employee">Nhân Viên</button>
+        <button data-module="searchEmployee">Tìm Kiếm</button>
         <button data-module="department">Quản Lý Phòng Ban</button>
         <button data-module="position">Quản Lý Vị Trí</button>
         <button data-module="salary">Quản Lý Lương</button>
@@ -169,7 +165,7 @@ function init() {
     if (checkAuth()) {
         // Nếu đã đăng nhập, hiển thị navbar và trang chính
         renderNavbar();
-        AddEmployeeModule.render();
+        EmployeeManagementModule.render();
     } else {
         // Nếu chưa đăng nhập, ẩn navbar và hiển thị trang đăng nhập
         hideNavbar();
@@ -177,7 +173,7 @@ function init() {
     }
     // Lắng nghe sự kiện refresh để cập nhật dashboard
     window.addEventListener('refresh', () => {
-        AddEmployeeModule.render();
+        EmployeeManagementModule.render();
     });
     // Lắng nghe sự kiện login để hiển thị navbar
     window.addEventListener('login', () => {

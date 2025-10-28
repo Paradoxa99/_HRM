@@ -81,78 +81,181 @@ export const DepartmentModule = {
     // Hàm render giao diện quản lý phòng ban
     render() {
         const container = document.getElementById('main-content');
-        container.innerHTML = '<h2>Quản Lý Phòng Ban</h2>';
-        // Tạo bảng hiển thị phòng ban
-        const table = document.createElement('table');
-        const header = document.createElement('tr');
-        ['ID', 'Tên', 'ID Quản Lý', 'Hành Động'].forEach(h => {
-            const th = document.createElement('th');
-            th.textContent = h;
-            header.appendChild(th);
-        });
-        table.appendChild(header);
+        container.innerHTML = `
+            <h2>Quản Lý Phòng Ban</h2>
+            <div id="department-content"></div>
+        `;
 
-        // Thêm dữ liệu từng phòng ban
-        this.getAllDepartments().forEach(dept => {
-            const row = document.createElement('tr');
-            [dept.id, dept.name, dept.managerId].forEach(val => {
-                const td = document.createElement('td');
-                td.textContent = val;
-                row.appendChild(td);
-            });
-            const actionsTd = document.createElement('td');
-            // Nút chỉnh sửa
-            const editBtn = document.createElement('button');
-            editBtn.textContent = 'Chỉnh Sửa';
-            editBtn.addEventListener('click', () => this.handleEdit(dept.id));
-            // Nút xóa
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Xóa';
-            deleteBtn.addEventListener('click', () => this.handleDelete(dept.id));
-            actionsTd.append(editBtn, deleteBtn);
-            row.appendChild(actionsTd);
-            table.appendChild(row);
-        });
-        container.appendChild(table);
+        this.showListView();
+    },
 
-        // Form thêm phòng ban mới
-        const addForm = document.createElement('form');
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.placeholder = 'Tên Phòng Ban';
-        const addBtn = document.createElement('button');
-        addBtn.textContent = 'Thêm';
-        addBtn.type = 'submit';
-        addForm.append(nameInput, addBtn);
-        // Gắn event listener cho form
-        addForm.addEventListener('submit', (e) => this.handleAdd(e, nameInput.value));
-        container.appendChild(addForm);
+    // Hiển thị view danh sách
+    showListView() {
+        const content = document.getElementById('department-content');
+        const departments = this.getAllDepartments().sort((a, b) => a.name.localeCompare(b.name));
+
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Danh Sách Phòng Ban</h3>
+                <button id="add-department-btn" class="action-btn" style="background-color: #4CAF50; color: white; padding: 10px 20px;">Thêm Phòng Ban</button>
+            </div>
+            <table class="department-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên Phòng Ban</th>
+                        <th>ID Quản Lý</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${departments.map(dept => `
+                        <tr>
+                            <td>${dept.id}</td>
+                            <td>${dept.name}</td>
+                            <td>${dept.managerId || 'Chưa có'}</td>
+                            <td>
+                                <button class="action-btn edit-btn" data-id="${dept.id}">Sửa</button>
+                                <button class="action-btn delete-btn" data-id="${dept.id}">Xóa</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        // Gắn event listeners
+        document.getElementById('add-department-btn').addEventListener('click', () => this.showAddView());
+        content.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.showEditView(e.target.dataset.id));
+        });
+        content.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleDelete(e.target.dataset.id));
+        });
+    },
+
+    // Hiển thị view thêm phòng ban
+    showAddView() {
+        const content = document.getElementById('department-content');
+
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Thêm Phòng Ban Mới</h3>
+                <button id="back-to-list-btn" class="action-btn" style="background-color: #666; color: white; padding: 10px 20px;">Quay Lại</button>
+            </div>
+            <form id="add-department-form" style="max-width: 400px;">
+                <div style="margin-bottom: 15px;">
+                    <label for="department-name">Tên phòng ban:</label>
+                    <input type="text" id="department-name" required style="width: 100%; padding: 8px; margin-top: 5px;">
+                </div>
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="action-btn" style="background-color: #4CAF50; color: white; padding: 12px 24px; margin-right: 10px;">Thêm Phòng Ban</button>
+                    <button type="button" id="cancel-add-btn" class="action-btn" style="background-color: #f44336; color: white; padding: 12px 24px;">Hủy</button>
+                </div>
+            </form>
+        `;
+
+        // Gắn event listeners
+        document.getElementById('back-to-list-btn').addEventListener('click', () => this.showListView());
+        document.getElementById('cancel-add-btn').addEventListener('click', () => this.showListView());
+        document.getElementById('add-department-form').addEventListener('submit', (e) => this.handleAdd(e));
+    },
+
+    // Hiển thị view sửa phòng ban
+    showEditView(departmentId) {
+        const content = document.getElementById('department-content');
+        const department = this.getAllDepartments().find(d => d.id === departmentId);
+
+        if (!department) {
+            alert('Không tìm thấy phòng ban!');
+            this.showListView();
+            return;
+        }
+
+        content.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Sửa Thông Tin Phòng Ban</h3>
+                <button id="back-to-list-btn" class="action-btn" style="background-color: #666; color: white; padding: 10px 20px;">Quay Lại</button>
+            </div>
+            <form id="edit-department-form" style="max-width: 400px;">
+                <input type="hidden" id="edit-department-id" value="${department.id}">
+                <div style="margin-bottom: 15px;">
+                    <label for="edit-department-name">Tên phòng ban:</label>
+                    <input type="text" id="edit-department-name" value="${department.name}" required style="width: 100%; padding: 8px; margin-top: 5px;">
+                </div>
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="action-btn" style="background-color: #2196F3; color: white; padding: 12px 24px; margin-right: 10px;">Cập Nhật</button>
+                    <button type="button" id="cancel-edit-btn" class="action-btn" style="background-color: #f44336; color: white; padding: 12px 24px;">Hủy</button>
+                </div>
+            </form>
+        `;
+
+        // Gắn event listeners
+        document.getElementById('back-to-list-btn').addEventListener('click', () => this.showListView());
+        document.getElementById('cancel-edit-btn').addEventListener('click', () => this.showListView());
+        document.getElementById('edit-department-form').addEventListener('submit', (e) => this.handleEdit(e));
     },
 
     // Hàm xử lý thêm phòng ban
-    async handleAdd(e, name) {
+    async handleAdd(e) {
         e.preventDefault();
+
+        const name = document.getElementById('department-name').value.trim();
+
+        // Validation
+        if (!name) {
+            alert('Vui lòng nhập tên phòng ban!');
+            return;
+        }
+
         try {
             await this.addDepartment(name);
-            // Render lại giao diện
-            this.render();
-        } catch (err) {
-            alert(err.message);
+            alert('Thêm phòng ban thành công!');
+            this.showListView();
+        } catch (error) {
+            alert('Lỗi khi thêm phòng ban: ' + error.message);
         }
     },
 
     // Hàm xử lý chỉnh sửa phòng ban
-    handleEdit(id) {
-        const newName = prompt('Tên mới:');
-        if (newName) {
-            this.editDepartment(id, newName).then(() => this.render()).catch(alert);
+    async handleEdit(e) {
+        e.preventDefault();
+
+        const departmentId = document.getElementById('edit-department-id').value;
+        const newName = document.getElementById('edit-department-name').value.trim();
+
+        // Validation
+        if (!newName) {
+            alert('Vui lòng nhập tên phòng ban!');
+            return;
+        }
+
+        try {
+            await this.editDepartment(departmentId, newName);
+            alert('Cập nhật phòng ban thành công!');
+            this.showListView();
+        } catch (error) {
+            alert('Lỗi khi cập nhật phòng ban: ' + error.message);
         }
     },
 
     // Hàm xử lý xóa phòng ban
-    handleDelete(id) {
-        if (confirm('Xóa phòng ban?')) {
-            this.deleteDepartment(id).then(() => this.render()).catch(alert);
+    async handleDelete(departmentId) {
+        // Kiểm tra xem phòng ban có nhân viên không
+        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        if (employees.some(e => e.departmentId === departmentId)) {
+            alert('Không thể xóa phòng ban đã có nhân viên!');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn xóa phòng ban này?')) return;
+
+        try {
+            await this.deleteDepartment(departmentId);
+            alert('Xóa phòng ban thành công!');
+            this.showListView(); // Refresh danh sách
+        } catch (error) {
+            alert('Lỗi khi xóa phòng ban: ' + error.message);
         }
     }
 };
